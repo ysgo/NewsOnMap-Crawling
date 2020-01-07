@@ -3,7 +3,16 @@ from selenium.webdriver.common.by import By
 import time
 
 # chromedriver version 79.0
-browser = webdriver.Chrome('chromedriver')
+
+# chrome headless mode options
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument('--headless')
+chrome_options.add_argument('--disable-gpu')
+chrome_options.add_argument('lang=ko_KR')
+chrome_options.add_argument('--disable-logging')
+# or '--log-level=3' to shut the logging
+
+browser = webdriver.Chrome('chromedriver', chrome_options=chrome_options, service_log_path='NUL')
 browser.implicitly_wait(2)
 
 browser.get('https://www.bigkinds.or.kr/v2/news/search.do')
