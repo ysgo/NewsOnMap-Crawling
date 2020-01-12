@@ -32,6 +32,26 @@ try:
         category = browser.find_element_by_css_selector(category_link).text
         category = category[:2]
         print(category)
+
+        page = 4
+        for pageNB in range(1, 2):
+            for i in range(1, 2):
+                print(pageNB);print(i)
+                newsname_link = '#news-results > div:nth-child(' + str(i) + ') > div.news-item__body > div.news-item__meta > a'
+                newsname = browser.find_element_by_css_selector(newsname_link).text
+                print(newsname)
+
+                date_link = '#news-results > div:nth-child(' + str(i) + ') > div.news-item__body > div.news-item__meta > span.news-item__date'
+                date = browser.find_element_by_css_selector(date_link).text
+                print(date)
+
+                title_link =  '#news-results > div:nth-child(' + str(i) + ') > div.news-item__body > h4'
+                title_elm = browser.find_element_by_css_selector(title_link)
+                title = title_elm.text
+                print(title)
+                title_elm.click()
+
+                ## News Detail Modal Open ##
 except:
     print('d')
 else:
