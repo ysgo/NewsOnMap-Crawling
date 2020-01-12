@@ -16,35 +16,27 @@ browser = webdriver.Chrome('chromedriver', chrome_options=chrome_options, servic
 browser.implicitly_wait(2)
 
 browser.get('https://www.bigkinds.or.kr/v2/news/search.do')
+id=None; newsname=None; title=None; category=None; date=None; url=None; content=None; dataSize=None
+print('getElementText is Start')
+try:
+    for menu in range(4, 5):
+        if menu == 4:
+            menu = 6
+        category_btn_link = '#filter-category-00' + str(menu) + '000000'
+        print(category_btn_link)
+        print(menu)
+        category_btn = browser.find_element_by_css_selector(category_btn_link)
+        category_btn.click()
 
-category = browser.find_element_by_xpath('//*[@id="filter-category"]/div/div[1]/label')
-category_btn = browser.find_element_by_xpath('//*[@id="filter-category-001000000"]')
-category_btn.click()
-
-time.sleep(4)
-newsname = browser.find_element_by_xpath('//*[@id="news-results"]/div[1]/div[2]/div[2]/a')
-title_hrf = browser.find_element_by_xpath('//*[@id="news-results"]/div[1]/div[2]/h4')
-title_hrf.click()
-
-time.sleep(2)
-
-title = browser.find_element_by_xpath('//*[@id="myModalLabel"]')
-date = browser.find_element_by_xpath('//*[@id="news-detail-modal"]/div/div/div[1]/div[2]/span[4]')
-author = browser.find_element_by_xpath('//*[@id="news-detail-modal"]/div/div/div[1]/div[2]/span[5]')
-img_url = browser.find_element_by_xpath('//*[@id="news-detail-modal"]/div/div/div[2]/div/div/img')
-
-contents = browser.find_element_by_xpath('//*[@id="news-detail-modal"]/div/div/div[2]/div')
-
-time.sleep(2)
-
-close_btn = browser.find_element_by_xpath('//*[@id="news-detail-modal"]/div/div/div[1]/button/span')
-close_btn.click()
-
-print(newsname.text)
-print(category)
-print(title)
-print(date.text)
-print(author)
-print(contents.text)
+        category_link = '#filter-category > div > div:nth-child(' + str(menu) + ') > label'
+        category = browser.find_element_by_css_selector(category_link).text
+        category = category[:2]
+        print(category)
+except:
+    print('d')
+else:
+    print('e')
+finally:
+    print('z')
 
 browser.quit()
