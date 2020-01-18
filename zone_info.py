@@ -1,14 +1,18 @@
-def add_zone_info():
-    from decouple import config
-    import pandas as pd
-    import pymysql
+from decouple import config
+import pandas as pd
+import pymysql
 
+def connect_mysql():
     connect = pymysql.connect(host=config('DB.URL'), port=int(config('DB.PORT')), user=config('DB.USER'),
                              passwd=config('DB.PASSWORD'), db=config('DB.NAME'), charset='utf8', autocommit=True)
+    return connect
+
+
+def add_zone_info():
+    connect = connect_mysql()
     cursor = connect.cursor()
 
     zone_name = ['PROVINCES', 'SIGUNGUS']
-
     try:
         for name in zone_name:
             data = pd.read_csv(config(name + '.URL'), encoding='utf8').fillna(0)
@@ -45,3 +49,24 @@ def add_zone_info():
         connect.commit()
         connect.close()
     return 1
+
+
+def exist_zone_info():
+    connect = connect_mysql()
+    cursor = connect.cursor()
+
+    sql = 'SELECT count(id) FROM provinces'
+    cursor.execute(sql)
+    check_province = cursor.fetchone()[0]
+    sql = 'SELECT count(id) FROM sigungus'
+    cursor.execute(sql)
+    check_sigungu = cursor.fetchone()[0]
+
+    result = None
+    if check_province < 18 or check_sigungu < 263:
+        result = 'Zone is inconsistent or not exists'
+    else:
+        result = 'Zone is exists'
+    cursor.close()
+    connect.close()
+    return result

@@ -1,13 +1,11 @@
-def startCrawling():
-    from selenium import webdriver
-    import pandas as pd
-    import time, sys, re
-    import pymysql
-    from decouple import config
+from zone_info import connect_mysql
+from selenium import webdriver
+import pandas as pd
+import time, sys, re
 
+def startCrawling():
     startTime = time.time()
-    connect = pymysql.connect(host=config('DB.URL'), port=int(config('DB.PORT')), user=config('DB.USER'),
-                         passwd=config('DB.PASSWORD'), db=config('DB.NAME'), charset='utf8', autocommit=True)
+    connect = connect_mysql()
     cursor = connect.cursor()
 
     # chromedriver version 79.0
@@ -20,7 +18,7 @@ def startCrawling():
 
     browser = webdriver.Chrome('chromedriver', chrome_options=chrome_options, service_log_path='NUL')
     browser.get('https://www.bigkinds.or.kr/v2/news/search.do')
-    list_category=[]; list_newsname=[]; list_title=[]; list_date=[]; list_url=[]; list_content=[]; list_dataSize=[]
+    list_title=[]; list_content=[]
     print('getElementText is Start')
     try:
         for menu in range(4, 5):
@@ -89,13 +87,13 @@ def startCrawling():
                               "values (%s, %s, %s, %s, %s, %s, %s)"
                         cursor.execute(sql, (newsname, title, category, date, url, content, dataSize))
 
-                    list_category.append(category)
-                    list_newsname.append(newsname)
+                    # list_category.append(category)
+                    # list_newsname.append(newsname)
                     list_title.append(title)
-                    list_date.append(date)
-                    list_url.append(url)
+                    # list_date.append(date)
+                    # list_url.append(url)
                     list_content.append(content)
-                    list_dataSize.append(dataSize)
+                    # list_dataSize.append(dataSize)
 
                 if page == 4:
                     break
@@ -118,16 +116,11 @@ def startCrawling():
             time.sleep(5)
 
         ## Dataframe by Pandas
-        result_data = {
-            'category': list_category,
-            'newsname': list_newsname,
+        analysis_data = {
             'title': list_title,
-            'date': list_date,
-            'url': list_url,
             'content': list_content,
-            'dataSize': list_dataSize
         }
-        result = pd.DataFrame(result_data)
+        result = pd.DataFrame(analysis_data)
     except:
         print('exception interrupt')
         result = None
