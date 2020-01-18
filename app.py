@@ -1,6 +1,7 @@
 from flask import Flask
 from crawling import startCrawling
 from flask_cors import CORS
+from decouple import config
 
 app = Flask(__name__)
 CORS(app)
@@ -9,6 +10,7 @@ CORS(app)
 @app.route('/news/crawling')
 def index():
     get_news = startCrawling()
+    print(get_news)
     if get_news is None:
         return 'empty', 200
     else:
@@ -17,6 +19,4 @@ def index():
 
 
 if __name__ == '__main__':
-    import os
-    port = int(os.getenv('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host=config('APP.URL'), port=int(config('APP.PORT')), debug=True)

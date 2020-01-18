@@ -2,8 +2,13 @@ def startCrawling():
     from selenium import webdriver
     import pandas as pd
     import time, sys, re
+    import pymysql
+    from decouple import config
 
     startTime = time.time()
+    connect = pymysql.connect(host=config('DB.URL'), port=int(config('DB.PORT')), user=config('DB.USER'),
+                         passwd=config('DB.PASSWORD'), db=config('DB.NAME'), charset='utf8', autocommit=True)
+    cursor = connect.cursor()
 
     # chromedriver version 79.0
     # chrome headless mode options
@@ -74,6 +79,16 @@ def startCrawling():
                     print('content : ' + content)
                     print('dataSize: ' + str(dataSize))
 
+                    sql = "SELECT count(id) FROM news_lists WHERE title = %s AND data_size = %s"
+                    cursor.execute(sql, (title, dataSize))
+                    distinct_check = cursor.fetchone()[0]
+                    if distinct_check > 0:
+                        continue
+                    else:
+                        sql = "INSERT INTO news_lists (name, title, category, date, url, content, data_size) " \
+                              "values (%s, %s, %s, %s, %s, %s, %s)"
+                        cursor.execute(sql, (newsname, title, category, date, url, content, dataSize))
+
                     list_category.append(category)
                     list_newsname.append(newsname)
                     list_title.append(title)
@@ -116,13 +131,15 @@ def startCrawling():
     except:
         print('exception interrupt')
         result = None
-        pass
+        pass # 예외 발생시 그냥 종료함. continue를 써야 다음 루프 진행
     else:
         print('getElement is Finish')
     finally:
+        browser.quit()
+        connect.commit()
+        connect.close()
         endTime = time.time()
         print('StartTime : ' + str(startTime) + ', EndTime : ' + str(endTime))
         print('Total execution time estimate : ' + str(endTime - startTime))
-        browser.quit()
     return result
 
