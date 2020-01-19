@@ -35,7 +35,7 @@ def startCrawling():
 
             page = 4
             for pageNB in range(1, 2):
-                for i in range(1, 3):
+                for i in range(1, 2):
                     print('pageNB : ' + str(pageNB))
                     print('i : ' + str(i))
                     newsname_link = '#news-results > div:nth-child(' + str(i) + ') > div.news-item__body > div.news-item__meta > a'
@@ -87,13 +87,8 @@ def startCrawling():
                               "values (%s, %s, %s, %s, %s, %s, %s)"
                         cursor.execute(sql, (newsname, title, category, date, url, content, dataSize))
 
-                    # list_category.append(category)
-                    # list_newsname.append(newsname)
                     list_title.append(title)
-                    # list_date.append(date)
-                    # list_url.append(url)
                     list_content.append(content)
-                    # list_dataSize.append(dataSize)
 
                 if page == 4:
                     break
@@ -108,8 +103,6 @@ def startCrawling():
 
             if menu == 6:
                 break
-            # browser.execute_script('scrollBy(0, 250);')
-            # time.sleep(2)
             reset_btn_link = '#collapse-step-2 > div > div > div.col-sm-3.col-lg-2 > div > h4 > button > i'
             reset_btn = browser.find_element_by_css_selector(reset_btn_link)
             reset_btn.click()
@@ -121,8 +114,8 @@ def startCrawling():
             'content': list_content,
         }
         result = pd.DataFrame(analysis_data)
-    except:
-        print('exception interrupt')
+    except Exception as e:
+        print('exception interrupt : ' + e)
         result = None
         pass # 예외 발생시 그냥 종료함. continue를 써야 다음 루프 진행
     else:

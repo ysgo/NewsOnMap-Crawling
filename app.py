@@ -3,6 +3,7 @@ from flask_cors import CORS
 from decouple import config
 from crawling import startCrawling
 from zone_info import add_zone_info, exist_zone_info
+from anlaysis import data_analysis
 
 app = Flask(__name__)
 CORS(app)
@@ -11,12 +12,13 @@ CORS(app)
 @app.route('/news/crawling')
 def index():
     analysis_data = startCrawling()
-    print(analysis_data)
     if analysis_data is None:
         return 'empty', 200
     else:
-        analysis_data.to_json(orient='index', force_ascii=False)
-        return analysis_data.to_json(orient='index', force_ascii=False)
+        result = data_analysis(analysis_data)
+        return result
+        # analysis_data.to_json(orient='index', force_ascii=False)
+        # return analysis_data.to_json(orient='index', force_ascii=False)
 
 
 @app.route('/news/zone/add')
