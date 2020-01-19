@@ -27,16 +27,12 @@ def data_analysis(analysis_data):
             headers={"Content-Type": "application/json; charset=UTF-8"},
             body=json.dumps(request_json)
         )
-        print("[responseCode] " + str(response.status))
-        print("[responBody]")
         response = json.loads(response.data.decode('utf-8'))
         return_object = response['return_object']
         sentences = return_object['sentence']
-        print(sentences)
         analysis = Analysis()
         for sentence in sentences:
             recognition_results = sentence['NE']
-            print(recognition_results)
             for info in recognition_results:
                 info_name = info['text']
                 print(info_name)
@@ -44,7 +40,7 @@ def data_analysis(analysis_data):
                 print(info_type)
                 name_len = len(info_name)
                 print(name_len)
-                loc_list = ['PROVINCE', 'CAPITALCITY', 'ISLAND', 'CITY', 'COUNTY']
+                loc_list = ('PROVINCE', 'CAPITALCITY', 'ISLAND', 'CITY', 'COUNTY')
                 first_name = []
                 if info_type.endswith(loc_list):
                     if name_len == 5:
@@ -57,23 +53,76 @@ def data_analysis(analysis_data):
                         if name_len != 1:
                             first_name.append(info_name[:1])
                     print(info_name)
+                    analysis.name_second = info_name
                     if name_len == 1:
                         for data in first_name:
                             analysis.name_first = data
-                        analysis.name_second = info_name
+                            result_id = insert_zone_check(analysis)
+                            if result_id:
+                                analysis.provinces.add(result_id)
                     else:
                         analysis.name_first = info_name[0:1]
                         analysis.name_second = info_name[1:2]
-    return response
+                        result_id = insert_zone_check(analysis)
+                        if result_id:
+                            analysis.sigungus.add(result_id)
+        provinces = analysis.provinces
+        sigungus = analysis.sigungus
+        provinces_len = len(provinces)
+        sigungus_len = len(sigungus)
+        if provinces_len == 0 and sigungus_len == 0:
+            news_id = 1
+            insert_news_districts(news_id, 1, 1)
+        else:
+            if provinces_len != 0:
+                for province in provinces:
+                    if sigungus_len != 0:
+                        for sigungu in sigungus:
+                            # 지역정보 가져오기 추가
+                            insert_news_districts(news_id, 1, 1)
+                    else:
+                        insert_news_districts(news_id, 1, 1)
+            else:
+                if sigungus_len != 0:
+                    for sigungu in sigungus:
+                        insert_news_districts(news_id, 1, 1)
+    return "analysis"
+
+
+def insert_news_districts(news_id, province_id, sigungu_id):
+    connect = connect_mysql()
+    cursor = connect.cursor()
+    sql = 'INSERT INTO news_districts (news_id, province_id, sigungu_id) ' \
+          'SELECT %s, %s, %s FROM DUAL WHERE NOT EXISTS ' \
+          '(SELECT * FROM news_districts ' \
+          'WHERE news_id=%s AND province_id=%s AND sigungu_id=%s) LIMIT 1'
+    cursor.execute(sql, (news_id, province_id, sigungu_id, news_id, province_id, sigungu_id))
 
 
 def insert_zone_check(analysis):
     connect = connect_mysql()
     cursor = connect.cursor()
-    temp = 0
-    sql = ''
-    cursor.execute(sql, ())
-
+    sql = 'SELECT COUNT(code) FROM provinces WHERE name LIKE "%s"'
+    cursor.execute(sql, ('%' + analysis.name_first + '%' + analysis.name_second + '%'))
+    check = cursor.fetchone()[0]
+    result_id = None
+    if check > 0:
+        sql = 'SELECT p.id FROM provinces p INNER JOIN sigungus s ON p.id=s.province_id ' \
+              'WHERE p.name LIKE "%s" LIMIT 1'
+        cursor.execute(sql, ('%' + analysis.name_first + '%' + analysis.name_second + '%'))
+        result_id = cursor.fetchone()[0]
+    else:
+        sql = 'SELECT COUNT(code) FROM sigungus WHERE name LIKE "%s"'
+        cursor.execute(sql, ('%' + analysis.name_first + '%' + analysis.name_second + '%'))
+        check = cursor.fetchone()[0]
+        if check > 0:
+            sql = 'SELECT s.id FROM provinces p INNER JOIN sigungus s ON p.id=s.province_id ' \
+                  'WHERE s.name LIKE "%s" LIMIT 1'
+            cursor.execute(sql, ('%' + analysis.name_first + '%' + analysis.name_second + '%'))
+            result_id = cursor.fetchone()[0]
+    cursor.close()
+    connect.close()
+    return result_id
 
 
 class Analysis:
