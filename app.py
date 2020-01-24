@@ -3,7 +3,7 @@ from flask_cors import CORS
 from decouple import config
 from crawling import startCrawling
 from zone_info import add_zone_info, exist_zone_info
-from anlaysis import data_analysis
+from analysis import data_analysis
 
 app = Flask(__name__)
 CORS(app)
